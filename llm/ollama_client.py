@@ -1,5 +1,4 @@
 from langchain_community.llms import Ollama
-from langchain.chains import LLMChain
 
 """
 提供基于ollama的模型服务基础服务功能

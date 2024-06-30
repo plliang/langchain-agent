@@ -31,8 +31,8 @@ template = '''你作为一个应急领域专家，有权限使用以下工具来
             如果要调用工具的话，使用JSON格式格式，格式如下：
                 Question: 需要你回答的问题
                 Thought: 你应该时刻思考该做什么 
-                Action: 要执行的方法，需要是工具列表 [{tool_names}] 中的一个
                 Action Input: 工具的输入,使用JSON格式返回，例如{{'field': 'value'}}
+                Action: 要执行的方法，需要是工具列表 [{tool_names}] 中的一个
                 Observation: <result>方法执行的结果</result>
                 ... 可能会重复N次
                 Final Answer: 原始问题的最终答案
