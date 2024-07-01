@@ -3,7 +3,7 @@
 """
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain.agents.chat.base import ChatAgent
-from langchain.agents.output_parsers import ReActSingleInputOutputParser
+from parser.task_output_parser import ReActSingleInputJSONOutputParser
 from langchain.agents.react.output_parser import ReActOutputParser
 from langchain.chains import ConversationChain
 from langchain_community.chat_models import ChatOllama
@@ -21,7 +21,7 @@ DEFAULT_SYS_TEMPLATE = """
 Question: 需要你回答的问题
 Thought: 你应该时刻思考该做什么 
 Action: 要执行的方法，需要是工具列表 [{tool_names}] 中的一个
-Action Input: 工具的输入,JSON字符串，不要添加markdown语法标识
+Action Input: 工具的输入,JSON字符串，不要添加markdown语法标识，示例如下：{{"assignee": "处理人","task_desc": "任务详情"}}
 Observation: <result>方法执行的结果</result>
 ... 可能会重复N次
 Final Answer: 原始问题的最终答案
@@ -62,15 +62,14 @@ tools = [
 # print(resp)
 
 
-
 # ReActSingleInputOutputParser
 # ReActOutputParser
 agent = create_react_agent(llm=ChatOllama(model='qwen2:7b-instruct'), prompt=chat_prompt, tools=tools,
                            tools_renderer=render_text_description_and_args,
-                           output_parser=ReActSingleInputOutputParser(), stop_sequence=['Final Answer', 'Observation'])
+                           output_parser=ReActSingleInputJSONOutputParser(), stop_sequence=['Final Answer', 'Observation'])
 # resp = agent.invoke(input={'input': '发生了一起森林大火，请分析现在的情况，并为相关人员分配任务', 'intermediate_steps': '', 'history': ''})
 agent_executor = AgentExecutor.from_agent_and_tools(
-    agent=agent, tools=tools, verbose=True, stream_runnable=True, handle_parsing_errors=False
+    agent=agent, tools=tools, verbose=True, stream_runnable=True, handle_parsing_errors=False, max_iterations=1
 )
 resp = agent_executor.invoke(input={'input': '发生了一起森林大火，请分析现在的情况，并为相关人员分配任务'})
 print(resp)
