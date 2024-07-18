@@ -14,7 +14,8 @@ from langchain_core.tools import render_text_description_and_args
 
 from tools.eme_task import CreateTask
 
-DEFAULT_SYS_TEMPLATE = """
+"""
+DEFAULT_SYS_TEMPLATE = 
 你是一个应急领域的专家，你需要分析当前的灾情事件信息，按照用户指示协助进行救援活动，如果预案步骤有明显的前后关系，在前一个步骤完成后再生成后一个阶段的任务。
 
 如果想要使用工具话，以JSON格式生成调用数据，不要添加markdown语法标识，不要换行，返回时不要改变字段的顺序（字段顺序很重要）：
@@ -47,6 +48,23 @@ Final Answer: 原始问题的最终答案
 Thought:{agent_scratchpad}
 """
 
+DEFAULT_SYS_TEMPLATE="""
+你是一个时序趋势预测模型，根据上下文信息生成相关的预测数据。
+
+最终返回的数据以如下格式：
+[
+  "时间","人员伤亡预测","财产损失预测"
+]
+
+{tools}
+[{tool_names}]
+
+事件的处理历史：
+{intermediate_steps}
+
+Thought:{agent_scratchpad}
+"""
+
 sys_prompt = SystemMessagePromptTemplate.from_template(DEFAULT_SYS_TEMPLATE)
 human_template = "{input}"
 human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
@@ -64,12 +82,17 @@ tools = [
 
 # ReActSingleInputOutputParser
 # ReActOutputParser
-agent = create_react_agent(llm=ChatOllama(model='qwen2:7b-instruct'), prompt=chat_prompt, tools=tools,
+"""
+agent = create_react_agent(llm=ChatOllama(base_url="http://192.168.21.43:11434",model='qwen2:7b-instruct'), prompt=chat_prompt, tools=tools,
+                           tools_renderer=render_text_description_and_args,
+                           output_parser=ReActSingleInputJSONOutputParser(), stop_sequence=['Final Answer', 'Observation'])
+"""
+agent = create_react_agent(llm=ChatOllama(base_url="http://192.168.21.43:11434",model='qwen2:7b-instruct'), prompt=chat_prompt, tools=[],
                            tools_renderer=render_text_description_and_args,
                            output_parser=ReActSingleInputJSONOutputParser(), stop_sequence=['Final Answer', 'Observation'])
 # resp = agent.invoke(input={'input': '发生了一起森林大火，请分析现在的情况，并为相关人员分配任务', 'intermediate_steps': '', 'history': ''})
 agent_executor = AgentExecutor.from_agent_and_tools(
     agent=agent, tools=tools, verbose=True, stream_runnable=True, handle_parsing_errors=False, max_iterations=1
 )
-resp = agent_executor.invoke(input={'input': '发生了一起森林大火，请分析现在的情况，并为相关人员分配任务'})
+resp = agent_executor.invoke(input={'input': '发生了一起森林大火，请帮我生成一个最近24小时的时序损失预测数据'})
 print(resp)
